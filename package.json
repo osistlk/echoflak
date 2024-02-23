@@ -9,7 +9,7 @@
   "main": "src/index.js",
   "scripts": {
     "main": "node src/index.js",
-    "test": "jest",
+    "test": "jest --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
