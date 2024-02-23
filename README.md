@@ -16,8 +16,9 @@ EchoFlak leverages AI technology, specifically in generating perceptual hashes o
 
 ### Prerequisites
 
-- Node.js installed on your system
-- NVIDIA Highlights setup for capturing War Thunder gameplay
+- **Node.js**: Make sure Node.js is installed on your system.
+- **FFmpeg**: EchoFlak requires a valid local FFmpeg installation for keyframe extraction and video concatenation. Ensure that FFmpeg is installed and its executable is accessible from your system's PATH.
+- **NVIDIA Highlights setup**: For capturing War Thunder gameplay clips.
 
 ### Installation
 
@@ -27,3 +28,8 @@ Clone the repository and install dependencies:
 git clone https://github.com/yourusername/EchoFlak.git
 cd EchoFlak
 npm install
+node extractKeyframes.js <path_to_your_videos_directory>
+node index.js
+
+###
+This version of the README provides a comprehensive guide to getting started with EchoFlak, clearly stating the dependencies and encouraging community engagement through contributions and feedback via GitHub Issues. It ensures users are aware of the need for a local FFmpeg installation and opens the door for community-driven development and improvement.
