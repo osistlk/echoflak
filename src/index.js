@@ -186,7 +186,7 @@ console.log("\x1b[32m%s\x1b[0m", "Starting the duplicate detection process...");
 console.time("Execution time");
 const startUsage = process.memoryUsage();
 
-const inputDir = "input";
+const inputDir = "C:\\Users\\osistlk\\Videos\\edits\\input";
 const keyframesDir = `${inputDir}/keyframes`;
 
 // Main process flow: Extract keyframes, find duplicates, move duplicates, and process leftover videos
