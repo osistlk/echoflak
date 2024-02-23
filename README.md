@@ -35,6 +35,6 @@ This version of the README provides a comprehensive guide to getting started wit
 
 This code is not optimized or meant for production. Use at your own caution.
 
-Tested with 1440p60fps MP4 video files with NodeJS v20, Git Bash, Windows 10.
+Tested with 1440p60fps MP4 video files with NodeJS v20, Git Bash, Windows 10. 50 videos were processed in 5 minutes with 50% duplicate rate.
 
 Sorry I like JavaScript & Windows :)
