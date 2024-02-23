@@ -33,3 +33,5 @@ node index.js
 ## Notes
 
 This version of the README provides a comprehensive guide to getting started with EchoFlak, clearly stating the dependencies and encouraging community engagement through contributions and feedback via GitHub Issues. It ensures users are aware of the need for a local FFmpeg installation and opens the door for community-driven development and improvement.
+
+Sorry I like JavaScript :)
