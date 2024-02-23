@@ -2,19 +2,17 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
+// Import a custom module to generate a perceptual hash of video frames.
 const { generatePerceptualHash } = require("./phash");
 
-// File paths for storing and reading duplicate data, and base directory for videos
+// Define base directory paths for video files and the path for storing data on duplicates.
 const videosBaseDir = "C:\\Users\\osistlk\\Videos\\edits\\input";
 const duplicatesFilePath = "duplicates.json";
 
 /**
- * Compares two sets of hashes to find matches based on a threshold and match percentage.
- * @param {Array} hashSet1 - The first set of hashes to compare.
- * @param {Array} hashSet2 - The second set of hashes to compare.
- * @param {Number} threshold - The maximum difference between hashes to consider a match.
- * @param {Number} matchPercentage - The minimum percentage of matches needed to consider the sets similar.
- * @returns {Boolean} - Whether the match ratio meets or exceeds the match percentage.
+ * This function compares two sets of perceptual hashes to identify duplicates.
+ * It calculates the difference between each pair of hashes and determines if they
+ * are similar enough to be considered duplicates based on the provided threshold and match percentage.
  */
 function compareHashSets(
   hashSet1,
@@ -41,12 +39,6 @@ function compareHashSets(
 
   return matchRatio >= matchPercentage;
 }
-
-/**
- * Finds duplicate videos within a directory by comparing their perceptual hashes.
- * @param {String} directory - The directory to search for duplicate videos.
- * @returns {Object} - A map of video directories to their duplicates.
- */
 
 async function findDuplicates(directory) {
   // Get all video directories within the specified directory
@@ -169,11 +161,7 @@ async function generateFileListForConcat(inputDir) {
   return fileListPath;
 }
 
-/**
- * Concatenates video files using ffmpeg based on a list of file paths.
- * @param {String} fileListPath - The path to the text file containing video file paths.
- * @param {String} outputFilePath - The path for the output concatenated video file.
- */
+
 function concatVideos(fileListPath, outputFilePath) {
   // ffmpeg command to concatenate videos listed in the file list
   const command = `ffmpeg -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
@@ -186,7 +174,8 @@ function concatVideos(fileListPath, outputFilePath) {
 }
 
 /**
- * Processes leftover videos after moving duplicates by concatenating them into a single file.
+ * Processes leftover videos after moving duplicates.
+ * It generates a list of videos to be concatenated and then merges them using ffmpeg.
  */
 
 async function processLeftoverVideos() {
