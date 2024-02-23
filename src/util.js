@@ -118,17 +118,30 @@ async function moveDuplicates() {
     fs.mkdirSync(duplicatesDir, { recursive: true });
   }
 
-  // Move each duplicate video to the duplicates directory
-  for (const [videoDir, duplicateDirs] of Object.entries(duplicatesData)) {
+  // A set to keep track of videos that have already been processed
+  const processedVideos = new Set();
+
+  // Iterate over the duplicates map
+  Object.entries(duplicatesData).forEach(([videoDir, duplicateDirs]) => {
+    // Always process the first directory as it contains the original
+    if (!processedVideos.has(videoDir)) {
+      processedVideos.add(videoDir);
+    }
+
     duplicateDirs.forEach((dupDir) => {
-      const originalPath = path.join(videosBaseDir, dupDir) + ".mp4";
-      const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
-      if (fs.existsSync(originalPath)) {
-        fs.renameSync(originalPath, targetPath);
-        console.log(`Moved ${dupDir} to duplicates.`);
+      // Move the video only if it has not been processed yet
+      if (!processedVideos.has(dupDir)) {
+        const originalPath = path.join(videosBaseDir, dupDir) + ".mp4";
+        const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
+        if (fs.existsSync(originalPath)) {
+          fs.renameSync(originalPath, targetPath);
+          console.log(`Moved ${dupDir} to duplicates.`);
+        }
+        // Mark this video as processed to avoid moving it again
+        processedVideos.add(dupDir);
       }
     });
-  }
+  });
 }
 
 /**
