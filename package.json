@@ -10,9 +10,11 @@
   "scripts": {
     "main": "node src/index.js",
     "test": "jest --coverage",
+    "test:delta": "jest --coverage --changedSince=origin/main",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prep": "npm run lint:fix & npm run test & npm run format"
   },
   "keywords": [
     "war",
