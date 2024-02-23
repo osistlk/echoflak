@@ -1,10 +1,12 @@
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
+
 const { generatePerceptualHash } = require("./phash");
 
 // File paths for storing and reading duplicate data, and base directory for videos
 const videosBaseDir = "C:\\Users\\osistlk\\Videos\\edits\\input";
-const duplicatesFilePath = `${videosBaseDir}\\duplicates.json`;
+const duplicatesFilePath = "duplicates.json";
 
 /**
  * Compares two sets of hashes to find matches based on a threshold and match percentage.
@@ -15,29 +17,29 @@ const duplicatesFilePath = `${videosBaseDir}\\duplicates.json`;
  * @returns {Boolean} - Whether the match ratio meets or exceeds the match percentage.
  */
 function compareHashSets(
-    hashSet1,
-    hashSet2,
-    threshold = 5,
-    matchPercentage = 0.5
+  hashSet1,
+  hashSet2,
+  threshold = 5,
+  matchPercentage = 0.5,
 ) {
-    let matches = 0;
-    hashSet1.forEach((hash1) => {
-        hashSet2.forEach((hash2) => {
-            // Calculate the difference between two hashes
-            let difference = hash1
-                .split("")
-                .filter((bit, index) => bit !== hash2[index]).length;
-            if (difference <= threshold) {
-                matches++;
-            }
-        });
+  let matches = 0;
+  hashSet1.forEach((hash1) => {
+    hashSet2.forEach((hash2) => {
+      // Calculate the difference between two hashes
+      let difference = hash1
+        .split("")
+        .filter((bit, index) => bit !== hash2[index]).length;
+      if (difference <= threshold) {
+        matches++;
+      }
     });
+  });
 
-    // Calculate the match percentage
-    const minSize = Math.min(hashSet1.length, hashSet2.length);
-    const matchRatio = matches / minSize;
+  // Calculate the match percentage
+  const minSize = Math.min(hashSet1.length, hashSet2.length);
+  const matchRatio = matches / minSize;
 
-    return matchRatio >= matchPercentage;
+  return matchRatio >= matchPercentage;
 }
 
 /**
@@ -47,55 +49,57 @@ function compareHashSets(
  */
 
 async function findDuplicates(directory) {
-    // Get all video directories within the specified directory
-    const videoDirs = fs
-        .readdirSync(directory)
-        .filter((file) => fs.statSync(path.join(directory, file)).isDirectory());
-    const videoHashes = {};
-    const duplicatesMap = {};
+  // Get all video directories within the specified directory
+  const videoDirs = fs
+    .readdirSync(directory)
+    .filter((file) => fs.statSync(path.join(directory, file)).isDirectory());
+  const videoHashes = {};
+  const duplicatesMap = {};
 
-    // Progress display initialization
-    let processed = 0;
-    const total = videoDirs.length;
-    console.log("");
-    console.log("\x1b[36m%s\x1b[0m", `Processing ${total} directories...`);
+  // Progress display initialization
+  let processed = 0;
+  const total = videoDirs.length;
+  console.log("");
+  console.log("\x1b[36m%s\x1b[0m", `Processing ${total} directories...`);
 
-    for (const videoDir of videoDirs) {
-        // Process each video directory to extract keyframes and generate hashes
-        const keyframeDir = path.join(directory, videoDir);
-        const keyframeFiles = fs
-            .readdirSync(keyframeDir)
-            .filter((file) => path.extname(file) === ".jpg");
-        videoHashes[videoDir] = [];
+  for (const videoDir of videoDirs) {
+    // Process each video directory to extract keyframes and generate hashes
+    const keyframeDir = path.join(directory, videoDir);
+    const keyframeFiles = fs
+      .readdirSync(keyframeDir)
+      .filter((file) => path.extname(file) === ".jpg");
+    videoHashes[videoDir] = [];
 
-        for (const file of keyframeFiles) {
-            // Generate and store perceptual hash for each keyframe
-            const hash = await generatePerceptualHash(path.join(keyframeDir, file));
-            videoHashes[videoDir].push(hash);
-        }
-
-        // Update progress for each processed directory
-        processed++;
-        process.stdout.write(
-            `\r\x1b[35mProgress: ${processed}/${total} directories processed.\x1b[0m`
-        );
+    for (const file of keyframeFiles) {
+      // Generate and store perceptual hash for each keyframe
+      const hash = await generatePerceptualHash(path.join(keyframeDir, file));
+      videoHashes[videoDir].push(hash);
     }
 
-    // Compare hashes of all videos to find duplicates
-    videoDirs.forEach((videoDir, index) => {
-        duplicatesMap[videoDir] = [];
-        for (let i = 0; i < videoDirs.length; i++) {
-            if (i !== index) {
-                const otherVideoDir = videoDirs[i];
-                if (compareHashSets(videoHashes[videoDir], videoHashes[otherVideoDir])) {
-                    // If duplicates are found, store them in the map
-                    duplicatesMap[videoDir].push(otherVideoDir);
-                }
-            }
-        }
-    });
+    // Update progress for each processed directory
+    processed++;
+    process.stdout.write(
+      `\r\x1b[35mProgress: ${processed}/${total} directories processed.\x1b[0m`,
+    );
+  }
 
-    return duplicatesMap;
+  // Compare hashes of all videos to find duplicates
+  videoDirs.forEach((videoDir, index) => {
+    duplicatesMap[videoDir] = [];
+    for (let i = 0; i < videoDirs.length; i++) {
+      if (i !== index) {
+        const otherVideoDir = videoDirs[i];
+        if (
+          compareHashSets(videoHashes[videoDir], videoHashes[otherVideoDir])
+        ) {
+          // If duplicates are found, store them in the map
+          duplicatesMap[videoDir].push(otherVideoDir);
+        }
+      }
+    }
+  });
+
+  return duplicatesMap;
 }
 
 /**
@@ -103,28 +107,28 @@ async function findDuplicates(directory) {
  */
 
 async function moveDuplicates() {
-    // Read duplicate data from JSON file
-    const duplicatesData = JSON.parse(
-        fs.readFileSync(duplicatesFilePath, "utf8")
-    );
-    const duplicatesDir = path.join(videosBaseDir, "duplicates");
+  // Read duplicate data from JSON file
+  const duplicatesData = JSON.parse(
+    fs.readFileSync(duplicatesFilePath, "utf8"),
+  );
+  const duplicatesDir = path.join(videosBaseDir, "duplicates");
 
-    // Create the duplicates directory if it doesn't exist
-    if (!fs.existsSync(duplicatesDir)) {
-        fs.mkdirSync(duplicatesDir, { recursive: true });
-    }
+  // Create the duplicates directory if it doesn't exist
+  if (!fs.existsSync(duplicatesDir)) {
+    fs.mkdirSync(duplicatesDir, { recursive: true });
+  }
 
-    // Move each duplicate video to the duplicates directory
-    for (const [videoDir, duplicateDirs] of Object.entries(duplicatesData)) {
-        duplicateDirs.forEach((dupDir) => {
-            const originalPath = path.join(videosBaseDir, dupDir) + ".mp4";
-            const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
-            if (fs.existsSync(originalPath)) {
-                fs.renameSync(originalPath, targetPath);
-                console.log(`Moved ${dupDir} to duplicates.`);
-            }
-        });
-    }
+  // Move each duplicate video to the duplicates directory
+  for (const [videoDir, duplicateDirs] of Object.entries(duplicatesData)) {
+    duplicateDirs.forEach((dupDir) => {
+      const originalPath = path.join(videosBaseDir, dupDir) + ".mp4";
+      const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
+      if (fs.existsSync(originalPath)) {
+        fs.renameSync(originalPath, targetPath);
+        console.log(`Moved ${dupDir} to duplicates.`);
+      }
+    });
+  }
 }
 
 /**
@@ -134,18 +138,19 @@ async function moveDuplicates() {
  */
 
 async function generateFileListForConcat(inputDir) {
-    // Filter MP4 files that haven't been moved to duplicates
-    const videoFiles = fs
-        .readdirSync(inputDir)
-        .filter(
-            (file) => path.extname(file) === ".mp4" &&
-                !fs.existsSync(path.join(inputDir, "duplicates", file))
-        );
-    const fileListPath = path.join(inputDir, "filelist.txt");
-    // Create content for the file list in ffmpeg's required format
-    const fileContent = videoFiles.map((file) => `file '${file}'`).join("\n");
-    fs.writeFileSync(fileListPath, fileContent);
-    return fileListPath;
+  // Filter MP4 files that haven't been moved to duplicates
+  const videoFiles = fs
+    .readdirSync(inputDir)
+    .filter(
+      (file) =>
+        path.extname(file) === ".mp4" &&
+        !fs.existsSync(path.join(inputDir, "duplicates", file)),
+    );
+  const fileListPath = path.join(inputDir, "filelist.txt");
+  // Create content for the file list in ffmpeg's required format
+  const fileContent = videoFiles.map((file) => `file '${file}'`).join("\n");
+  fs.writeFileSync(fileListPath, fileContent);
+  return fileListPath;
 }
 
 /**
@@ -154,14 +159,14 @@ async function generateFileListForConcat(inputDir) {
  * @param {String} outputFilePath - The path for the output concatenated video file.
  */
 function concatVideos(fileListPath, outputFilePath) {
-    // ffmpeg command to concatenate videos listed in the file list
-    const command = `ffmpeg -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
-    try {
-        execSync(command);
-        console.log("Videos have been concatenated successfully.");
-    } catch (error) {
-        console.error("An error occurred during video concatenation:", error);
-    }
+  // ffmpeg command to concatenate videos listed in the file list
+  const command = `ffmpeg -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
+  try {
+    execSync(command);
+    console.log("Videos have been concatenated successfully.");
+  } catch (error) {
+    console.error("An error occurred during video concatenation:", error);
+  }
 }
 
 /**
@@ -169,9 +174,9 @@ function concatVideos(fileListPath, outputFilePath) {
  */
 
 async function processLeftoverVideos() {
-    const fileListPath = await generateFileListForConcat(inputDir);
-    const outputFilePath = path.join(inputDir, "concatenated_video.mp4");
-    concatVideos(fileListPath, outputFilePath);
+  const fileListPath = await generateFileListForConcat(videosBaseDir);
+  const outputFilePath = path.join(videosBaseDir, "concatenated_video.mp4");
+  concatVideos(fileListPath, outputFilePath);
 }
 
 module.exports = { findDuplicates, moveDuplicates, processLeftoverVideos };

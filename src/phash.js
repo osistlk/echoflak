@@ -3,48 +3,48 @@ const ndarray = require("ndarray");
 
 // Function to generate perceptual hash for a single image
 async function generatePerceptualHash(imagePath) {
-    const data = await sharp(imagePath)
-        .resize(32, 32)
-        .grayscale()
-        .raw()
-        .toBuffer();
+  const data = await sharp(imagePath)
+    .resize(32, 32)
+    .grayscale()
+    .raw()
+    .toBuffer();
 
-    let imgArray = ndarray(new Float32Array(data), [32, 32]);
+  let imgArray = ndarray(new Float32Array(data), [32, 32]);
 
-    // Simplified DCT implementation
-    function dct(u, v, arr) {
-        const N = 32;
-        let sum = 0;
-        for (let i = 0; i < N; i++) {
-            for (let j = 0; j < N; j++) {
-                const cos1 = Math.cos(((2 * i + 1) * u * Math.PI) / (2 * N));
-                const cos2 = Math.cos(((2 * j + 1) * v * Math.PI) / (2 * N));
-                sum += cos1 * cos2 * arr.get(i, j);
-            }
-        }
-        const scale = [
-            u == 0 ? 1 / Math.sqrt(2) : 1,
-            v == 0 ? 1 / Math.sqrt(2) : 1,
-        ];
-        return sum * ((2 / N) * scale[0] * scale[1]);
+  // Simplified DCT implementation
+  function dct(u, v, arr) {
+    const N = 32;
+    let sum = 0;
+    for (let i = 0; i < N; i++) {
+      for (let j = 0; j < N; j++) {
+        const cos1 = Math.cos(((2 * i + 1) * u * Math.PI) / (2 * N));
+        const cos2 = Math.cos(((2 * j + 1) * v * Math.PI) / (2 * N));
+        sum += cos1 * cos2 * arr.get(i, j);
+      }
     }
-
-    // Apply DCT to the top-left 8x8 part of the image
-    let dctArray = new Float32Array(64);
-    for (let u = 0; u < 8; u++) {
-        for (let v = 0; v < 8; v++) {
-            dctArray[u * 8 + v] = dct(u, v, imgArray);
-        }
-    }
-
-    const medianValue = Array.from(dctArray).sort((a, b) => a - b)[
-        Math.floor(dctArray.length / 2)
+    const scale = [
+      u == 0 ? 1 / Math.sqrt(2) : 1,
+      v == 0 ? 1 / Math.sqrt(2) : 1,
     ];
-    const hashBinary = Array.from(dctArray)
-        .map((value) => (value > medianValue ? "1" : "0"))
-        .join("");
+    return sum * ((2 / N) * scale[0] * scale[1]);
+  }
 
-    return hashBinary;
+  // Apply DCT to the top-left 8x8 part of the image
+  let dctArray = new Float32Array(64);
+  for (let u = 0; u < 8; u++) {
+    for (let v = 0; v < 8; v++) {
+      dctArray[u * 8 + v] = dct(u, v, imgArray);
+    }
+  }
+
+  const medianValue = Array.from(dctArray).sort((a, b) => a - b)[
+    Math.floor(dctArray.length / 2)
+  ];
+  const hashBinary = Array.from(dctArray)
+    .map((value) => (value > medianValue ? "1" : "0"))
+    .join("");
+
+  return hashBinary;
 }
 
 module.exports = { generatePerceptualHash };
