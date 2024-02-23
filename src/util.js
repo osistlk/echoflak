@@ -118,27 +118,30 @@ async function moveDuplicates() {
     fs.mkdirSync(duplicatesDir, { recursive: true });
   }
 
-  // A set to keep track of videos that have already been processed
-  const processedVideos = new Set();
+  // A set to keep track of videos that have been moved, ensuring no original is moved
+  const movedVideos = new Set();
 
-  // Iterate over the duplicates map
-  Object.entries(duplicatesData).forEach(([videoDir, duplicateDirs]) => {
-    // Always process the first directory as it contains the original
-    if (!processedVideos.has(videoDir)) {
-      processedVideos.add(videoDir);
-    }
+  // Sort the keys of duplicatesData to process them in alphabetical order
+  const videoDirs = Object.keys(duplicatesData).sort();
 
-    duplicateDirs.forEach((dupDir) => {
-      // Move the video only if it has not been processed yet
-      if (!processedVideos.has(dupDir)) {
+  videoDirs.forEach((videoDir) => {
+    // Sort the duplicate directories to ensure they are processed in alphabetical order
+    const duplicateDirs = duplicatesData[videoDir].sort();
+
+    duplicateDirs.forEach((dupDir, index) => {
+      // The first duplicate in alphabetical order is considered the "original" and should not be moved
+      if (index === 0 && !movedVideos.has(dupDir)) {
+        // Mark this as "moved" to skip it in future, though it's not actually moved
+        movedVideos.add(dupDir);
+      } else {
         const originalPath = path.join(videosBaseDir, dupDir) + ".mp4";
         const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
         if (fs.existsSync(originalPath)) {
           fs.renameSync(originalPath, targetPath);
           console.log(`Moved ${dupDir} to duplicates.`);
+          // Mark this video as moved to avoid considering it as original in future
+          movedVideos.add(dupDir);
         }
-        // Mark this video as processed to avoid moving it again
-        processedVideos.add(dupDir);
       }
     });
   });
