@@ -86,6 +86,9 @@ async function findDuplicates(directory) {
         ) {
           // If duplicates are found, store them in the map
           duplicatesMap[videoDir].push(otherVideoDir);
+          // remove the duplicate from the videoDirs array to avoid redundant comparisons
+          videoDirs.splice(i, 1);
+          i--;
         }
       }
     }
@@ -112,28 +115,19 @@ async function moveDuplicates() {
 
   // A set to keep track of videos that have been moved, ensuring no original is moved
   const movedVideos = new Set();
-
-  // Sort the keys of duplicatesData to process them in alphabetical order
-  const videoDirs = Object.keys(duplicatesData).sort();
+  const videoDirs = Object.keys(duplicatesData);
 
   videoDirs.forEach((videoDir) => {
-    // Sort the duplicate directories to ensure they are processed in alphabetical order
-    const duplicateDirs = duplicatesData[videoDir].sort();
+    const duplicateDirs = duplicatesData[videoDir];
 
-    duplicateDirs.forEach((dupDir, index) => {
-      // The first duplicate in alphabetical order is considered the "original" and should not be moved
-      if (index === 0 && !movedVideos.has(dupDir)) {
-        // Mark this as "moved" to skip it in future, though it's not actually moved
+    duplicateDirs.forEach((dupDir) => {
+      const originalPath = path.join(videosBaseDir, dupDir) + ".mp4";
+      const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
+      if (fs.existsSync(originalPath)) {
+        fs.renameSync(originalPath, targetPath);
+        console.log(`Moved ${dupDir} to duplicates.`);
+        // Mark this video as moved to avoid considering it as original in future
         movedVideos.add(dupDir);
-      } else {
-        const originalPath = path.join(videosBaseDir, dupDir) + ".mp4";
-        const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
-        if (fs.existsSync(originalPath)) {
-          fs.renameSync(originalPath, targetPath);
-          console.log(`Moved ${dupDir} to duplicates.`);
-          // Mark this video as moved to avoid considering it as original in future
-          movedVideos.add(dupDir);
-        }
       }
     });
   });
