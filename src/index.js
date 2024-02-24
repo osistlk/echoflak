@@ -18,7 +18,7 @@ console.time("Execution time");
 const startUsage = process.memoryUsage();
 
 // Define the directory paths for input videos and where to store the extracted keyframes.
-const inputDir = "C:\\Users\\osistlk\\Videos\\edits\\input";
+const inputDir = "input";
 const keyframesDir = `${inputDir}/keyframes`;
 
 // The main process flow is initiated here.

@@ -6,7 +6,7 @@ const { execSync } = require("child_process");
 const { generatePerceptualHash } = require("./phash");
 
 // Define base directory paths for video files and the path for storing data on duplicates.
-const videosBaseDir = "C:\\Users\\osistlk\\Videos\\edits\\input";
+const videosBaseDir = "input";
 const duplicatesFilePath = "duplicates.json";
 
 /**
