@@ -40,7 +40,7 @@ describe("moveDuplicates", () => {
       }),
     );
     await moveDuplicates();
-    expect(fs.renameSync).toHaveBeenCalledTimes(2);
+    expect(fs.renameSync).toHaveBeenCalledTimes(4);
     expect(fs.renameSync).toHaveBeenCalledWith(
       expect.any(String),
       expect.any(String),
