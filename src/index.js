@@ -5,12 +5,12 @@ const fs = require("fs");
 // 'findDuplicates' identifies duplicate videos based on the extracted keyframes.
 // 'moveDuplicates' moves identified duplicates to a separate directory.
 // 'processLeftoverVideos' concatenates non-duplicate videos into a single video file.
-const { extractKeyframesForDirectory } = require("./keyframes");
+const { extractKeyframesForDirectory } = require("./lib/keyframes");
 const {
   findDuplicates,
   moveDuplicates,
   processLeftoverVideos,
-} = require("./util");
+} = require("./lib/util");
 
 // Begin the process by logging to the console and starting a timer to track execution time.
 console.log("\x1b[32m%s\x1b[0m", "Starting the duplicate detection process...");

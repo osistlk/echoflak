@@ -1,6 +1,6 @@
 // FILEPATH: /c:/Users/osistlk/Documents/Code/echoflak/test/phash.test.js
 const sharp = require("sharp");
-const { generatePerceptualHash } = require("../src/phash");
+const { generatePerceptualHash } = require("../src/lib/phash");
 jest.mock("sharp");
 
 describe("generatePerceptualHash", () => {

@@ -4,7 +4,7 @@ const path = require("path");
 jest.mock("fs");
 jest.mock("path");
 
-const { moveDuplicates } = require("../src/util");
+const { moveDuplicates } = require("../src/lib/util");
 
 describe("moveDuplicates", () => {
   beforeEach(() => {

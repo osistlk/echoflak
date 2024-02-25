@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 const util = require("util");
-const { extractKeyframesForDirectory } = require("../src/keyframes");
+const { extractKeyframesForDirectory } = require("../src/lib/keyframes");
 const { beforeEach } = require("node:test");
 jest.mock("fs");
 jest.mock("path");
@@ -48,7 +48,7 @@ describe("extractKeyframesForDirectory", () => {
       .mockReturnValueOnce("test/dir/keyframes/video1");
     fs.existsSync.mockReturnValue(false);
     await extractKeyframesForDirectory("test/dir");
-    expect(fs.mkdirSync).toHaveBeenCalledWith("test/dir/keyframes/video1", {
+    expect(fs.mkdir).toHaveBeenCalledWith("test/dir/keyframes/video1", {
       recursive: true,
     });
   });
