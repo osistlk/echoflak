@@ -1,8 +1,6 @@
 // FILEPATH: /c:/Users/osistlk/Documents/Code/echoflak/test/keyframes.test.js
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
-const util = require("util");
 const { extractKeyframesForDirectory } = require("../src/lib/keyframes");
 const { beforeEach } = require("node:test");
 jest.mock("fs");
