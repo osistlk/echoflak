@@ -38,7 +38,7 @@ async function extractKeyframesForDirectory(directory) {
       }
     });
 
-    const maxParallel = 4;
+    const maxParallel = 100;
     for (let i = 0; i < tasks.length; i += maxParallel) {
       const batch = tasks.slice(i, i + maxParallel).map((task) => task());
       await Promise.all(batch);
