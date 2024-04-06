@@ -15,6 +15,7 @@ const {
 // Begin the process by logging to the console and starting a timer to track execution time.
 console.log("\x1b[32m%s\x1b[0m", "Starting the duplicate detection process...");
 console.time("Execution time");
+// eslint-disable-next-line no-undef
 const startUsage = process.memoryUsage();
 
 // Define the directory paths for input videos and where to store the extracted keyframes.
@@ -60,6 +61,7 @@ extractKeyframesForDirectory(inputDir).then(() => {
     })
     .finally(() => {
       // Once all processes are complete, or if an error occurs, log the memory usage and total execution time.
+      // eslint-disable-next-line no-undef
       const endUsage = process.memoryUsage();
       const usedMemory =
         (endUsage.heapUsed - startUsage.heapUsed) / 1024 / 1024;
