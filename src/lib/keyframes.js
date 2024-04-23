@@ -6,7 +6,7 @@ const util = require("util");
 const execAsync = util.promisify(exec);
 
 async function extractKeyframes(videoPath, outputDir) {
-  const command = `ffmpeg -y -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr -hwaccel cuda -hwaccel_output_format cuda "${outputDir}/keyframe_%03d.jpg"`;
+  const command = `ffmpeg -y -hwaccel cuda -i "${videoPath}" -vsync vfr -vf "select='eq(pict_type,PICT_TYPE_I)'" "${outputDir}/keyframe_%03d.jpg"`;
   try {
     await execAsync(command);
   } catch (error) {
@@ -38,7 +38,7 @@ async function extractKeyframesForDirectory(directory) {
       }
     });
 
-    const maxParallel = 1;
+    const maxParallel = 24;
     for (let i = 0; i < tasks.length; i += maxParallel) {
       const batch = tasks.slice(i, i + maxParallel).map((task) => task());
       await Promise.all(batch);
