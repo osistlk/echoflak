@@ -6,7 +6,7 @@ const util = require("util");
 const execAsync = util.promisify(exec);
 
 async function extractKeyframes(videoPath, outputDir) {
-  const command = `ffmpeg -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${outputDir}/keyframe_%03d.jpg"`;
+  const command = `ffmpeg -y -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr -hwaccel cuda -hwaccel_output_format cuda "${outputDir}/keyframe_%03d.jpg"`;
   try {
     await execAsync(command);
   } catch (error) {
