@@ -46,7 +46,7 @@ async function extractKeyframesForDirectory(directory) {
       await Promise.all(batch);
     }
   } catch (error) {
-    console.error(`An error occurred reading input files: ${error}`);
+    console.error(`An error occurred reading input files: ${error.message}`);
     exit();
   }
 }

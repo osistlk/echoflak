@@ -1,12 +1,13 @@
 {
-  "inputDir": "C:\\Users\\osistlk\\Documents\\Code\\echoflak\\input",
-  "outDir": ".",
-  "outputFilename": "highlight_reel.mp4",
-  "clean": {
-    "logs": true,
-    "keyframes": true,
-    "duplicates": true,
-    "nonDuplicates": true
-  },
-  "printConfig": false
+    "inputDir": "D:\\Video Games\\Highlights\\War Thunder",
+    "outDir": ".",
+    "outputFilename": "highlight_reel.mp4",
+    "clean": {
+        "logs": true,
+        "keyframes": true,
+        "duplicates": true,
+        "nonDuplicates": true
+    },
+    "printConfig": false,
+    "cleanBefore": false
 }
