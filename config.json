@@ -1,13 +1,13 @@
 {
-    "inputDir": "D:\\Video Games\\Highlights\\War Thunder",
-    "outputDir": "C:\\Users\\osistlk\\Videos",
-    "outputFilename": "highlight_reel",
-    "clean": {
-        "logs": true,
-        "keyframes": true,
-        "duplicates": true,
-        "nonDuplicates": true
-    },
-    "printConfig": true,
-    "cleanBefore": true
+  "inputDir": "D:\\Video Games\\Highlights\\War Thunder",
+  "outputDir": "C:\\Users\\osistlk\\Videos",
+  "outputFilename": "highlight_reel",
+  "clean": {
+    "logs": true,
+    "keyframes": true,
+    "duplicates": true,
+    "nonDuplicates": true
+  },
+  "printConfig": true,
+  "cleanBefore": true
 }

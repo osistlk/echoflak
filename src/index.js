@@ -68,7 +68,11 @@ console.log(`\x1b[36mProcessing ${videoFiles.length} videos...\x1b[0m`);
 
 const tasks = videoFiles.map((videoFile) => async () => {
   const videoPath = join(inputDir, videoFile);
-  const keyframeOutputDir = join(inputDir, "keyframes", basename(videoFile, ".mp4"));
+  const keyframeOutputDir = join(
+    inputDir,
+    "keyframes",
+    basename(videoFile, ".mp4"),
+  );
 
   mkdirSync(keyframeOutputDir, { recursive: true });
   const command = `ffmpeg -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${keyframeOutputDir}/keyframe_%03d.jpg"`;
@@ -144,6 +148,7 @@ async function main() {
       }
     }
   });
+  writeFileSync("duplicates.json", JSON.stringify(duplicatesMap, null, 2));
 
   // Read duplicate data from JSON file
   const duplicatesData = JSON.parse(readFileSync("duplicates.json", "utf8"));
@@ -173,6 +178,9 @@ async function main() {
     });
   });
 
+  console.log();
+  console.log("Duplicates moved.");
+
   // Filter MP4 files that haven't been moved to duplicates
   const videoFiles = readdirSync(inputDir).filter(
     (file) =>
@@ -187,17 +195,20 @@ async function main() {
   const outputFilePath = join(config.outputDir, `${config.outputFilename}.mp4`);
 
   // ffmpeg command to concatenate videos listed in the file list
-  const command = `ffmpeg -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
+  const command = `ffmpeg -y -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
   execSync(command);
   console.log("Videos have been concatenated successfully.");
 
   console.log();
   console.timeEnd("Execution time");
 
-  if (config.clean.logs)
-    rmSync('filelist')
-  if (config.clean.keyframes)
-    rmSync('keyframes')
+  try {
+    if (config.clean.logs) rmSync(`${inputDir}\\filelist.txt`);
+    if (config.clean.keyframes)
+      rmSync(`${keyframesDir}`, { recursive: true, force: true });
+  } catch {
+    console.log("Error during cleanup.");
+  }
 
   console.log(
     "\x1b[33m%s\x1b[0m",
