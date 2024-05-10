@@ -3,7 +3,7 @@ const process = require("process");
 const path = require("path");
 const util = require("util");
 const child_process = require("child_process");
-const exec = util.promisify(require("child_process").exec);
+const exec = util.promisify(child_process.exec);
 const { generatePerceptualHash } = require("./lib/phash");
 const { compareHashSets } = require("./lib/util");
 
