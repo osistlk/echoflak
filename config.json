@@ -1,7 +1,7 @@
 {
     "inputDir": "D:\\Video Games\\Highlights\\War Thunder",
-    "outputDir": ".",
-    "outputFilename": "highlight_reel.mp4",
+    "outputDir": "C:\\Users\\osistlk\\Videos",
+    "outputFilename": "highlight_reel",
     "clean": {
         "logs": true,
         "keyframes": true,

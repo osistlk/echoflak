@@ -1,4 +1,4 @@
-const fs = require("fs").promises;
+const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 const util = require("util");
@@ -17,7 +17,7 @@ async function extractKeyframes(videoPath, outputDir) {
 
 async function extractKeyframesForDirectory(directory) {
   try {
-    const files = await fs.readdir(directory);
+    const files = fs.readdirSync(directory);
     const videoFiles = files.filter((file) => file.endsWith(".mp4"));
     if (videoFiles.length === 0) throw new Error("No input files");
 
@@ -32,7 +32,7 @@ async function extractKeyframesForDirectory(directory) {
       );
 
       try {
-        await fs.mkdir(outputDir, { recursive: true });
+        fs.mkdirSync(outputDir, { recursive: true });
         await extractKeyframes(videoPath, outputDir);
         console.log(`\x1b[32mExtracted keyframes from ${videoFile}\x1b[0m`);
       } catch (error) {
@@ -40,7 +40,7 @@ async function extractKeyframesForDirectory(directory) {
       }
     });
 
-    const maxParallel = 2;
+    const maxParallel = 100;
     for (let i = 0; i < tasks.length; i += maxParallel) {
       const batch = tasks.slice(i, i + maxParallel).map((task) => task());
       await Promise.all(batch);

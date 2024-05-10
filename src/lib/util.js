@@ -42,7 +42,7 @@ function compareHashSets(
 
 async function findDuplicates(directory) {
   // Check if the keyframe dir exists
-  await fs.mkdirSync(directory);
+  fs.mkdirSync(directory);
 
   // Get all video directories within the specified directory
   const videoDirs = fs
@@ -180,4 +180,9 @@ async function processLeftoverVideos() {
   concatVideos(fileListPath, outputFilePath);
 }
 
-module.exports = { findDuplicates, moveDuplicates, processLeftoverVideos };
+module.exports = {
+  findDuplicates,
+  moveDuplicates,
+  processLeftoverVideos,
+  compareHashSets,
+};
