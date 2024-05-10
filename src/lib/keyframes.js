@@ -2,6 +2,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const { exec } = require("child_process");
 const util = require("util");
+const { exit } = require("process");
 
 const execAsync = util.promisify(exec);
 
@@ -18,6 +19,7 @@ async function extractKeyframesForDirectory(directory) {
   try {
     const files = await fs.readdir(directory);
     const videoFiles = files.filter((file) => file.endsWith(".mp4"));
+    if (videoFiles.length === 0) throw new Error("No input files");
 
     console.log(`\x1b[36mProcessing ${videoFiles.length} videos...\x1b[0m`);
 
@@ -38,13 +40,14 @@ async function extractKeyframesForDirectory(directory) {
       }
     });
 
-    const maxParallel = 100;
+    const maxParallel = 2;
     for (let i = 0; i < tasks.length; i += maxParallel) {
       const batch = tasks.slice(i, i + maxParallel).map((task) => task());
       await Promise.all(batch);
     }
   } catch (error) {
     console.error(`An error occurred reading input files: ${error}`);
+    exit();
   }
 }
 
