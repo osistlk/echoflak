@@ -7,69 +7,81 @@ const exec = util.promisify(child_process.exec);
 const { generatePerceptualHash } = require("./lib/phash");
 const { compareHashSets } = require("./lib/util");
 
-const cleanBefore = () => {
+function extractKeyframesFromVideoFiles() {
+  console.log(`\x1b[36mProcessing ${videoFiles.length} videos...\x1b[0m`);
+
+  const tasks = videoFiles.map((videoFile) => async () => {
+    const videoPath = path.join(inputDir, videoFile);
+    const keyframeOutputDir = path.join(
+      inputDir,
+      "keyframes",
+      path.basename(videoFile, ".mp4"),
+    );
+
+    fs.mkdirSync(keyframeOutputDir, { recursive: true });
+    const command = `ffmpeg -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${keyframeOutputDir}/keyframe_%03d.jpg"`;
+    await exec(command);
+    console.log(`\x1b[32mExtracted keyframes from ${videoFile}\x1b[0m`);
+  });
+  return tasks;
+}
+
+function loadVideos() {
+  console.log(
+    "\x1b[32m%s\x1b[0m",
+    "Starting the duplicate detection process...",
+  );
+  console.time("Execution time");
+
+  const inputDir = config.inputDir;
+
+  const files = fs.readdirSync(inputDir);
+  const videoFiles = files.filter((file) => file.endsWith(".mp4"));
+  if (videoFiles.length === 0) throw new Error("No input files");
+  return { videoFiles, inputDir };
+}
+
+function loadConfig() {
+  const configFilePath = "config.json";
+  console.log("Reading config file from path: ");
+  console.log(configFilePath);
+
+  if (!fs.existsSync(configFilePath)) {
+    console.log("No config file present.");
+    process.exit();
+  }
+
+  const config = JSON.parse(fs.readFileSync(configFilePath));
+  console.log("Config file loaded.");
+  return config;
+}
+
+function parseConfig() {
+  if (config.printConfig) console.log(config);
+  if (config.cleanBefore) cleanBefore();
+  if (!config.inputDir || !fs.existsSync(config.inputDir)) {
+    console.error("No valid input directory.");
+    process.exit();
+  }
+  if (!config.outputDir || !fs.existsSync(config.outputDir)) {
+    console.error("No valid output directory.");
+    process.exit();
+  }
+}
+
+function greeting() {
+  console.clear();
+  console.log("Welcome to EchoFlak NVIDIA Highlights deduplication tool.");
+}
+
+function cleanBefore() {
   console.log("Cleaning up...");
   const inputDir = config.inputDir;
   const keyframesDir = `${inputDir}/keyframes`;
   if (fs.existsSync(keyframesDir))
     fs.rmSync(keyframesDir, { recursive: true, force: true });
   console.log("Cleanup complete.");
-};
-
-console.clear();
-console.log("Welcome to EchoFlak NVIDIA Highlights deduplication tool.");
-
-const configFilePath = "config.json";
-console.log("Reading config file from path: ");
-console.log(configFilePath);
-
-if (!fs.existsSync(configFilePath)) {
-  console.log("No config file present.");
-  process.exit();
 }
-
-const config = JSON.parse(fs.readFileSync(configFilePath));
-console.log("Config file loaded.");
-
-if (config.printConfig) console.log(config);
-
-if (config.cleanBefore) cleanBefore();
-
-if (!config.inputDir || !fs.existsSync(config.inputDir)) {
-  console.error("No valid input directory.");
-  process.exit();
-}
-
-if (!config.outputDir || !fs.existsSync(config.outputDir)) {
-  console.error("No valid output directory.");
-  process.exit();
-}
-
-// Begin the process by logging to the console and starting a timer to track execution time.
-console.log("\x1b[32m%s\x1b[0m", "Starting the duplicate detection process...");
-console.time("Execution time");
-
-const inputDir = config.inputDir;
-
-const files = fs.readdirSync(inputDir);
-const videoFiles = files.filter((file) => file.endsWith(".mp4"));
-if (videoFiles.length === 0) throw new Error("No input files");
-
-console.log(`\x1b[36mProcessing ${videoFiles.length} videos...\x1b[0m`);
-
-const tasks = videoFiles.map((videoFile) => async () => {
-  const videoPath = path.join(inputDir, videoFile);
-  const keyframeOutputDir = path.join(
-    inputDir,
-    "keyframes",
-    path.basename(videoFile, ".mp4"),
-  );
-
-  fs.mkdirSync(keyframeOutputDir, { recursive: true });
-  const command = `ffmpeg -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${keyframeOutputDir}/keyframe_%03d.jpg"`;
-  await exec(command);
-  console.log(`\x1b[32mExtracted keyframes from ${videoFile}\x1b[0m`);
-});
 
 async function runBatch() {
   const maxParallel = 100;
@@ -162,6 +174,7 @@ async function main() {
       const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
       if (fs.existsSync(originalPath)) {
         fs.renameSync(originalPath, targetPath);
+        console.log();
         console.log(`Moved ${dupDir} to duplicates.`);
         // Mark this video as moved to avoid considering it as original in future
         movedVideos.add(dupDir);
@@ -213,4 +226,9 @@ async function main() {
   console.log("Goodbye.");
 }
 
+greeting();
+const config = loadConfig();
+parseConfig();
+const { videoFiles, inputDir } = loadVideos();
+const tasks = extractKeyframesFromVideoFiles();
 main();
