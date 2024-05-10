@@ -186,7 +186,7 @@ async function main() {
   console.log("Duplicates moved.");
 
   // Filter MP4 files that haven't been moved to duplicates
-  const videoFiles = fs
+  const uniqueVideoFiles = fs
     .readdirSync(inputDir)
     .filter(
       (file) =>
@@ -195,7 +195,7 @@ async function main() {
     );
   const fileListPath = path.join(inputDir, "filelist.txt");
   // Create content for the file list in ffmpeg's required format
-  const fileContent = videoFiles.map((file) => `file '${file}'`).join("\n");
+  const fileContent = uniqueVideoFiles.map((file) => `file '${file}'`).join("\n");
   fs.writeFileSync(fileListPath, fileContent);
 
   const outputFilePath = path.join(
