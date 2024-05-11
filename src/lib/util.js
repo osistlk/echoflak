@@ -73,6 +73,7 @@ async function findDuplicates(directory) {
 
     // Update progress for each processed directory
     processed++;
+    // eslint-disable-next-line no-undef
     process.stdout.write(
       `\r\x1b[35mProgress: ${processed}/${total} directories processed.\x1b[0m`,
     );
