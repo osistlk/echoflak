@@ -113,16 +113,17 @@ async function main() {
   goodbye();
 
   function moveDuplicatesBack() {
-    fs.readdirSync("duplicates").forEach((file) => {
-      const sourcePath = path.join(`${inputDir}\\duplicates`, file);
-      const destPath = path.join(inputDir, file);
-      try {
+    const inputDir = config.inputDir;
+    try {
+      fs.readdirSync("duplicates").forEach((file) => {
+        const sourcePath = path.join(`${inputDir}\\duplicates`, file);
+        const destPath = path.join(inputDir, file);
         fs.renameSync(sourcePath, destPath);
         console.log(`Moved ${file} to ${inputDir}`);
-      } catch {
-        console.log("Error when moving duplicates back to source directory.");
-      }
-    });
+      });
+    } catch {
+      console.log("Error when moving duplicates back to source directory.");
+    }
   }
 
   function goodbye() {
@@ -197,7 +198,6 @@ async function main() {
         const targetPath = path.join(duplicatesDir, dupDir) + ".mp4";
         if (fs.existsSync(originalPath)) {
           fs.renameSync(originalPath, targetPath);
-          console.log();
           console.log(`Moved ${dupDir} to duplicates.`);
           // Mark this video as moved to avoid considering it as original in future
           movedVideos.add(dupDir);
@@ -257,6 +257,7 @@ async function main() {
         `\r\x1b[35mProgress: ${processed}/${total} directories processed.\x1b[0m`,
       );
     }
+    console.log();
   }
 
   function prepProcessor() {
