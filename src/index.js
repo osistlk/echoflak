@@ -58,7 +58,6 @@ function loadConfig() {
 
 function parseConfig() {
   if (config.printConfig) console.log(config);
-  if (config.cleanBefore) cleanBefore();
   if (!config.inputDir || !fs.existsSync(config.inputDir)) {
     console.error("No valid input directory.");
     process.exit();
@@ -76,12 +75,15 @@ function greeting() {
 }
 
 function cleanBefore() {
-  console.log("Cleaning up...");
-  const inputDir = config.inputDir;
-  const keyframesDir = `${inputDir}/keyframes`;
-  if (fs.existsSync(keyframesDir))
+  const keyframesDir = `${inputDir}\\keyframes`;
+  const duplicatesPath = path.join(inputDir, "duplicates");
+  const filelistPath = path.join(inputDir, "filelist.txt");
+  if (config.clean.logs) fs.rmSync(filelistPath, { force: true });
+  if (config.clean.duplicates)
+    fs.rmSync(duplicatesPath, { recursive: true, force: true });
+  if (config.clean.keyframes)
     fs.rmSync(keyframesDir, { recursive: true, force: true });
-  console.log("Cleanup complete.");
+  console.log("Pre cleanup complete.");
 }
 
 async function runBatch() {
@@ -93,26 +95,6 @@ async function runBatch() {
 }
 
 async function main() {
-  // Run each video keyframe extraction task
-  // I've done it this way so I can block n number of child processes until they finish
-  // Surely there will be no unintended consequences :D
-  await runBatch();
-  const keyframesDir = validateKeyframes();
-  // Get all video directories within the specified directory
-  let { videoDirs, videoHashes, duplicatesMap } = prepProcessor();
-  // Progress display initialization
-  await generateKeyframeHashes();
-  // Compare hashes of all videos to find duplicates
-  findDuplicates();
-  // Read duplicate data from JSON file
-  moveDuplicates();
-  // Filter MP4 files that haven't been moved to duplicates
-  mergeAndOutputVideo();
-  // Move duplicates back to original folder
-  moveDuplicatesBack();
-  cleanup();
-  goodbye();
-
   function moveDuplicatesBack() {
     const duplicatesPath = path.join(inputDir, "duplicates");
     try {
@@ -125,7 +107,6 @@ async function main() {
         console.log(`Moved ${duplicateVideoFile} to ${inputDir}`);
       }
     } catch (error) {
-      console.error(error);
       console.log("Error when moving duplicates back to source directory.");
     }
   }
@@ -139,14 +120,17 @@ async function main() {
   }
 
   function cleanup() {
+    const duplicatesPath = path.join(inputDir, "duplicates");
+    const filelistPath = path.join(inputDir, "filelist.txt");
+
     try {
-      if (config.clean.logs) fs.rmSync(`${inputDir}\\filelist.txt`);
-      if (config.clean.keyframes)
-        fs.rmSync(`${keyframesDir}`, { recursive: true, force: true });
+      if (config.clean.logs) fs.rmSync(filelistPath);
       if (config.clean.duplicates)
-        fs.rmSync(`${inputDir}\\duplicates`, { recursive: true, force: true });
-    } catch {
-      console.log("Error during cleanup.");
+        fs.rmSync(duplicatesPath), { recursive: true, force: true };
+      if (config.clean.keyframes)
+        fs.rmSync(keyframesDir, { recursive: true, force: true });
+    } catch (error) {
+      console.log("Error during post cleanup.");
     }
   }
 
@@ -280,11 +264,32 @@ async function main() {
     if (!fs.existsSync(inputDir)) fs.mkdirSync(inputDir);
     return keyframesDir;
   }
+
+  // Run each video keyframe extraction task
+  // I've done it this way so I can block n number of child processes until they finish
+  // Surely there will be no unintended consequences :D
+  await runBatch();
+  const keyframesDir = validateKeyframes();
+  // Get all video directories within the specified directory
+  let { videoDirs, videoHashes, duplicatesMap } = prepProcessor();
+  // Progress display initialization
+  await generateKeyframeHashes();
+  // Compare hashes of all videos to find duplicates
+  findDuplicates();
+  // Read duplicate data from JSON file
+  moveDuplicates();
+  // Filter MP4 files that haven't been moved to duplicates
+  mergeAndOutputVideo();
+  // Move duplicates back to original folder
+  moveDuplicatesBack();
+  cleanup();
+  goodbye();
 }
 
 greeting();
 const config = loadConfig();
 parseConfig();
 const { videoFiles, inputDir } = loadVideos();
+if (config.cleanBefore) cleanBefore();
 const tasks = extractKeyframesFromVideoFiles();
 main();

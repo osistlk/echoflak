@@ -6,7 +6,7 @@
     "logs": true,
     "keyframes": true,
     "duplicates": true,
-    "nonDuplicates": true
+    "nonDuplicates": false
   },
   "printConfig": false,
   "cleanBefore": true
