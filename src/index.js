@@ -19,7 +19,7 @@ function extractKeyframesFromVideoFiles() {
     );
 
     fs.mkdirSync(keyframeOutputDir, { recursive: true });
-    const command = `ffmpeg -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${keyframeOutputDir}/keyframe_%03d.jpg"`;
+    const command = `ffmpeg -y -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${keyframeOutputDir}/keyframe_%03d.jpg"`;
     await exec(command);
     console.log(`\x1b[32mExtracted keyframes from ${videoFile}\x1b[0m`);
   });
@@ -72,6 +72,7 @@ function parseConfig() {
 function greeting() {
   console.clear();
   console.log("Welcome to EchoFlak NVIDIA Highlights deduplication tool.");
+  console.log();
 }
 
 function cleanBefore() {
@@ -113,15 +114,18 @@ async function main() {
   goodbye();
 
   function moveDuplicatesBack() {
-    const inputDir = config.inputDir;
+    const duplicatesPath = path.join(inputDir, "duplicates");
     try {
-      fs.readdirSync("duplicates").forEach((file) => {
-        const sourcePath = path.join(`${inputDir}\\duplicates`, file);
-        const destPath = path.join(inputDir, file);
+      const duplicateVideoFiles = fs.readdirSync(duplicatesPath);
+      for (const duplicateVideoFile of duplicateVideoFiles) {
+        console.log(duplicateVideoFile);
+        const sourcePath = path.join(duplicatesPath, duplicateVideoFile);
+        const destPath = path.join(inputDir, duplicateVideoFile);
         fs.renameSync(sourcePath, destPath);
-        console.log(`Moved ${file} to ${inputDir}`);
-      });
-    } catch {
+        console.log(`Moved ${duplicateVideoFile} to ${inputDir}`);
+      }
+    } catch (error) {
+      console.error(error);
       console.log("Error when moving duplicates back to source directory.");
     }
   }
@@ -204,9 +208,8 @@ async function main() {
         }
       });
     });
-
-    console.log();
     console.log("Duplicates moved.");
+    console.log();
   }
 
   function findDuplicates() {
