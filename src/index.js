@@ -19,7 +19,7 @@ function extractKeyframesFromVideoFiles() {
     );
 
     fs.mkdirSync(keyframeOutputDir, { recursive: true });
-    const command = `ffmpeg -y -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${keyframeOutputDir}/keyframe_%03d.jpg"`;
+    const command = `ffmpeg -y -hwaccel cuda -i "${videoPath}" -vf "select='eq(pict_type,PICT_TYPE_I)'" -vsync vfr "${keyframeOutputDir}/keyframe_%03d.jpg"`;
     await exec(command);
     console.log(`\x1b[32mExtracted keyframes from ${videoFile}\x1b[0m`);
   });
@@ -87,7 +87,7 @@ function cleanBefore() {
 }
 
 async function runBatch() {
-  const maxParallel = 100;
+  const maxParallel = 2;
   for (let i = 0; i < tasks.length; i += maxParallel) {
     const batch = tasks.slice(i, i + maxParallel).map((task) => task());
     await Promise.all(batch);
@@ -155,7 +155,7 @@ async function main() {
     );
 
     // ffmpeg command to concatenate videos listed in the file list
-    const command = `ffmpeg -y -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
+    const command = `ffmpeg -y -hwaccel cuda -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
     child_process.execSync(command);
     console.log("Videos have been concatenated successfully.");
 

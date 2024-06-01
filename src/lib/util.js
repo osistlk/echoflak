@@ -161,7 +161,7 @@ async function generateFileListForConcat(inputDir) {
 
 function concatVideos(fileListPath, outputFilePath) {
   // ffmpeg command to concatenate videos listed in the file list
-  const command = `ffmpeg -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
+  const command = `ffmpeg -y -hwaccel cuda -f concat -safe 0 -i "${fileListPath}" -c copy "${outputFilePath}"`;
   try {
     execSync(command);
     console.log("Videos have been concatenated successfully.");
