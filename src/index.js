@@ -86,11 +86,40 @@ function cleanBefore() {
   console.log("Pre cleanup complete.");
 }
 
+async function getGPUUsage() {
+  const { stdout } = await exec(
+    "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits",
+  );
+  const gpuUtilizations = stdout
+    .trim()
+    .split("\n")
+    .map((line) => parseInt(line));
+  return gpuUtilizations.reduce((a, b) => a + b, 0) / gpuUtilizations.length;
+}
+
 async function runBatch() {
-  const maxParallel = 100;
+  let maxParallel = 10; // Start with a reasonable default
+  const maxGPUUsage = 80; // Maximum GPU load percentage
+  const minGPUUsage = 50; // Minimum GPU load percentage
+  const adjustmentFactor = 2; // Factor to increase/decrease maxParallel
+
   for (let i = 0; i < tasks.length; i += maxParallel) {
     const batch = tasks.slice(i, i + maxParallel).map((task) => task());
     await Promise.all(batch);
+
+    // Measure current GPU usage
+    const gpuUsage = await getGPUUsage();
+
+    console.log(`Current GPU Usage: ${gpuUsage.toFixed(2)}%`);
+
+    // Adjust maxParallel based on GPU usage
+    if (gpuUsage > maxGPUUsage && maxParallel > 1) {
+      maxParallel = Math.max(1, maxParallel - adjustmentFactor);
+      console.log(`Reducing maxParallel to ${maxParallel}`);
+    } else if (gpuUsage < minGPUUsage) {
+      maxParallel += adjustmentFactor;
+      console.log(`Increasing maxParallel to ${maxParallel}`);
+    }
   }
 }
 
